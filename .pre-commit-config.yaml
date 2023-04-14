@@ -5,8 +5,14 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
-  - repo: https://github.com/dnephin/pre-commit-golang
-    rev: v0.5.0
+  - repo: https://github.com/Bahjat/pre-commit-golang
+    rev: v1.0.2
     hooks:
-      - id: no-go-testing
+      - id: go-fmt-import
+      - id: go-vet
+      - id: go-lint
       - id: go-unit-tests
+      - id: gofumpt # requires github.com/mvdan/gofumpt
+      - id: go-err-check # requires github.com/kisielk/errcheck
+      - id: go-ruleguard # requires https://github.com/quasilyte/go-ruleguard
+        args: [rules/rules.go] # required
