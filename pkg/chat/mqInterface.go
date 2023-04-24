@@ -14,8 +14,8 @@ type MQInf struct {
 	MQChannel *amqp.Channel
 }
 
-func (mc *MQInf) Connect() error {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+func (mc *MQInf) Connect(url string) error {
+	conn, err := amqp.Dial(url)
 	if err != nil {
 		return err
 	}
