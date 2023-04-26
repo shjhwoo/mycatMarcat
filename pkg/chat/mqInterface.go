@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -15,11 +16,12 @@ type MQInf struct {
 }
 
 func (mc *MQInf) Connect(url string) error {
+	fmt.Println(url, "접속주소지")
 	conn, err := amqp.Dial(url)
 	if err != nil {
+		fmt.Println("함수 내부에서 발생:", err)
 		return err
 	}
-	defer conn.Close()
 	mc.MQConn = conn
 	return nil
 }
@@ -30,7 +32,7 @@ func (mc *MQInf) CreateChannel() error {
 		return errors.New("cannot create a channel with nil Connection")
 	}
 
-	ch, err := mc.MQConn.Channel() //커넥션이 닫히면 이 채널도 닫힌다.
+	ch, err := mc.MQConn.Channel() //커넥션이 닫히면 이 채널도 닫힌다. 커넥션 만들고 닫아서 테스트 통과 안되었었던 것.ㅠ
 	if err != nil {
 		return err
 	}
