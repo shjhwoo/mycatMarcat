@@ -3,7 +3,6 @@ package chat
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -16,10 +15,8 @@ type MQInf struct {
 }
 
 func (mc *MQInf) Connect(url string) error {
-	fmt.Println(url, "접속주소지")
 	conn, err := amqp.Dial(url)
 	if err != nil {
-		fmt.Println("함수 내부에서 발생:", err)
 		return err
 	}
 	mc.MQConn = conn
@@ -41,32 +38,33 @@ func (mc *MQInf) CreateChannel() error {
 	return nil
 }
 
-func (mc *MQInf) DeclareExchange() error {
+func (mc *MQInf) DeclareExchange(name string, exchangeType string) error {
 	if mc.MQChannel == nil {
 		return errors.New("cannot declare exchange with nil channel")
 	}
 
 	err := mc.MQChannel.ExchangeDeclare(
-		"name",  //name
-		"topic", // type
-		true,    //durable
-		false,   //auto-deleteds
-		false,   //internal
-		false,   //no-wait?
-		nil,     //arguments?
+		name,         //name
+		exchangeType, // type
+		true,         //durable
+		false,        //auto-deleteds
+		false,        //internal
+		false,        //no-wait?
+		nil,          //arguments?
 	)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
-func (mc *MQInf) DeclareQueue(queueName string) error {
+func (mc *MQInf) DeclareQueue(queueName string) (*amqp.Queue, error) {
 	if mc.MQChannel == nil {
-		return errors.New("cannot declare queue with nil channel")
+		return nil, errors.New("cannot declare queue with nil channel")
 	}
 
-	_, err := mc.MQChannel.QueueDeclare(
+	q, err := mc.MQChannel.QueueDeclare(
 		queueName, // names
 		true,      // durable
 		true,      // delete when unused
@@ -75,20 +73,20 @@ func (mc *MQInf) DeclareQueue(queueName string) error {
 		nil,       // arguments
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &q, nil
 }
 
-func (mc *MQInf) BindQueue() error {
+func (mc *MQInf) BindQueue(queueName, routingKey, exchangeName string) error {
 	if mc.MQChannel == nil {
 		return errors.New("cannot bind queue with nil channel")
 	}
 
 	err := mc.MQChannel.QueueBind(
-		"queueName",
-		"routingKey",
-		"exchangeName",
+		queueName,
+		routingKey,
+		exchangeName,
 		false,
 		nil,
 	)
@@ -98,7 +96,7 @@ func (mc *MQInf) BindQueue() error {
 	return nil
 }
 
-func (mc *MQInf) SendMsgToExchange(exchange, routingKey, message string, ch *amqp.Channel) error {
+func (mc *MQInf) SendMsgToExchange(exchange, routingKey, message string) error {
 	//messageType: public, private, disconnect
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
