@@ -11,7 +11,6 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-// e2e test.
 func TestMQInfra(t *testing.T) {
 	ctx := context.Background()
 	req := testcontainers.ContainerRequest{
@@ -64,51 +63,91 @@ func TestMQInfra(t *testing.T) {
 	}
 
 	//채팅 서버 시작 시 MQ에 연결하고, 단일 채널도 생성되어야 합니다
-	testMQInf := MQInf{}
-
-	err = testMQInf.Connect("amqp://guest:guest@" + endPoint)
+	err = MQIn.Connect("amqp://guest:guest@" + endPoint)
 	if err != nil {
 		t.Error(err)
 	}
 
-	assert.NotNil(t, testMQInf.MQConn)
+	assert.NotNil(t, MQIn.MQConn)
 
-	err = testMQInf.CreateChannel()
+	err = MQIn.CreateChannel()
 	if err != nil {
 		t.Error(err)
 	}
 
-	assert.NotNil(t, testMQInf.MQChannel)
+	assert.NotNil(t, MQIn.MQChannel)
 
-	err = testMQInf.DeclareExchange("catExchange", "topic")
+	err = MQIn.DeclareExchange("catExchange", "topic")
 	if err != nil {
 		t.Error(err)
 	}
 
-	q, err := testMQInf.DeclareQueue("user1")
+	q, err := MQIn.DeclareQueue("user1")
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = testMQInf.BindQueue((*q).Name, "user1.*.public", "catExchange")
+	err = MQIn.BindQueue((*q).Name, "user1.*.public", "catExchange")
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = testMQInf.SendMsgToExchange("catExchange", "user1.vol.public", "user1님이 참여하셨습니다")
+	err = MQIn.SendMsgToExchange("catExchange", "user1.vol.public", "user1님이 참여하셨습니다")
 	if err != nil {
 		t.Error(err)
 	}
 
-	//서버 시작 시 상담용 익스체인지, 봉사대화용 익스체인지 2개가 생성되어야 합니다
-	//서버 시작 시 실행되는 함수를 테스트해야 한다
-	//그 함수는 mq 커넥션 객체를 인자로 받아서 익스체인지를 생성할 수 있어야 한다
-	//사용자가 로그인을 하게 되면 해당 사용자는 스톰프를 통해 특정 큐를 구독해야 합니다.
-	//챗봇 상담
-	//상담원 상담
-	//봉사 구인, 봉사 신청 1:1채팅
+	err = MQIn.UnbindQueue((*q).Name, "user1.*.public", "catExchange")
+	if err != nil {
+		t.Error(err)
+	}
 
-	//사용자가 채팅 메세지를 입력하게 되면 해당 메세지는 바인딩 규칙을 통해서 익스체인지에 전달해야 합니다
+	//사용지가 채팅방 입장 시 함수 구성요소만 테스트. 통합테스트아님
+	setChatInfo("chatbot")
 
-	//누군가가 자신이 구독한 큐에 메세지를 보낸 경우 이를 컨슘할 수 있어야 합니다
+	assert.Equal(t, chat.getExchangeName(), "helperEx")
+	assert.Equal(t, chat.getExchangeType(), "topic")
+	assert.Equal(t, chat.getRoutingKey(), "bot.*")
+
+	setChatInfo("consult")
+
+	assert.Equal(t, chat.getExchangeName(), "helperEx")
+	assert.Equal(t, chat.getExchangeType(), "topic")
+	assert.Equal(t, chat.getRoutingKey(), "consult.*")
+
+	setChatInfo("volunteerPrivate")
+
+	assert.Equal(t, chat.getExchangeName(), "volunteerEx")
+	assert.Equal(t, chat.getExchangeType(), "topic")
+	assert.Equal(t, chat.getRoutingKey(), "vol.private.*")
+
+	setChatInfo("volunteerPublic")
+
+	assert.Equal(t, chat.getExchangeName(), "volunteerEx")
+	assert.Equal(t, chat.getExchangeType(), "topic")
+	assert.Equal(t, chat.getRoutingKey(), "vol.public.*")
+
+	//====사용자 로그인 후 채팅방 들어가기, 나가기 테스트
+	err = MQIn.DeclareExchange("helperEx", "topic")
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = CreateUserMsgBox("user1")
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = EnterNewChatRoom("user1", "chatbot")
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = LeaveChatRoom("user1", "chatbot")
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = checkEmptyUserId("")
+	assert.Equal(t, err.Error(), "userid cannot be empty")
 }

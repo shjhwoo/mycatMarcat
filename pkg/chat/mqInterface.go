@@ -14,6 +14,8 @@ type MQInf struct {
 	MQChannel *amqp.Channel
 }
 
+var MQIn MQInf
+
 func (mc *MQInf) Connect(url string) error {
 	conn, err := amqp.Dial(url)
 	if err != nil {
@@ -90,6 +92,19 @@ func (mc *MQInf) BindQueue(queueName, routingKey, exchangeName string) error {
 		false,
 		nil,
 	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// 채팅방 나가기.
+func (mc *MQInf) UnbindQueue(queueName, routingKey, exchangeName string) error {
+	if mc.MQChannel == nil {
+		return errors.New("cannot unbind queue with nil channel")
+	}
+
+	err := mc.MQChannel.QueueUnbind(queueName, routingKey, exchangeName, amqp.Table{})
 	if err != nil {
 		return err
 	}
