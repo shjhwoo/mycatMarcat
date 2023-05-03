@@ -1,0 +1,132 @@
+Table users {
+  id integer [primary key]
+  user_id varchar
+  password varchar
+  nickname varchar
+  credits integer
+}
+
+Table volunteerPosts {
+  id integer [primary key]
+  content varchar
+  userPK integer
+}
+
+Table volunteerPostComments{
+  id integer [primary key]
+  content varchar
+  userPK integer
+  volunteerPostPK integer
+  commentPK integer
+}
+
+Table ChatType {
+  id integer [primary key]
+  type varchar
+}
+
+Table ChatRooms {
+  id integer [primary key]
+  chatRoomName varchar
+  chatTypePK integer
+  ownerPK integer
+}
+
+Table Chats {
+  id integer [primary key]
+  message varchar
+  isRead tinyint
+  chatRoomPK integer
+  senderPK integer
+  createdAt varchar
+  DISCD tinyint
+}
+
+Table Products {
+  id integer [primary key]
+  productName varchar
+  unitPrice integer
+  isSoldOut tinyint
+  createdAt varchar
+  DISCD tinyint
+  maxDiscountRate integer
+  couponApplyable tinyint
+  creditsApplyable tinyint
+}
+
+Table productReview {
+  id integer [primary key]
+  content varchar
+  productPK integer
+  userPK integer
+  rate integer
+}
+
+Table productReviewComment {
+  id integer [primary key]
+  content varchar
+  userPK integer
+  rieviewPK integer
+}
+
+Table product_order {
+  id integer [primary key]
+  productPK integer
+  orderPK integer
+  DISCD tinyint //부분취소여부
+}
+
+Table order {
+  id integer [primary key]
+  userPK integer
+  discountCouponPK integer
+  usedCredits integer
+  orderStatus tinyint
+  paymentMethodPK integer
+}
+
+Table paymentMethod {
+  id integer [primary key]
+  paymentMethod varchar
+}
+
+Table discountCoupon {
+  id integer [primary key]
+  discountCouponName varchar
+  discountRate integer
+}
+
+
+Ref: "users"."id" < "volunteerPosts"."userPK"
+
+Ref: "users"."id" < "ChatRooms"."ownerPK"
+
+Ref: "users"."id" < "Chats"."senderPK"
+
+Ref: "ChatRooms"."id" < "Chats"."chatRoomPK"
+
+Ref: "ChatType"."id" < "ChatRooms"."chatTypePK"
+
+Ref: "users"."id" < "volunteerPostComments"."userPK"
+
+Ref: "volunteerPosts"."id" < "volunteerPostComments"."volunteerPostPK"
+
+Ref: "volunteerPostComments"."id" < "volunteerPostComments"."commentPK"
+
+Ref: "Products"."id" < "product_order"."productPK"
+
+Ref: "order"."id" < "product_order"."orderPK"
+
+Ref: "users"."id" < "order"."userPK"
+
+Ref: "Products"."id" < "productReview"."productPK"
+
+Ref: "users"."id" < "productReview"."userPK"
+
+Ref: "productReview"."id" < "productReviewComment"."rieviewPK"
+
+Ref: "users"."id" < "productReviewComment"."userPK"
+
+Ref: "paymentMethod"."id" < "order"."paymentMethodPK"
+
+Ref: "discountCoupon"."id" < "order"."discountCouponPK"
