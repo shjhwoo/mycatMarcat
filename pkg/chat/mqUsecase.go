@@ -10,8 +10,7 @@ import (
 
 //exchange 2개 생성
 //상담용 exchange는 상담원, 챗봇, 봉사용 exchange
-
-//사용자가 로그인을 하면 기본 큐가 생성됩니다. 채팅 입장 전에는 구독 상태가 아닙니다.
+//사용자가 채팅방에 입장할 때부터, 큐가 생성됩니다. 채팅 입장 전에는 구독 상태가 아닙니다.
 
 type Chat interface {
 	getExchangeName() string

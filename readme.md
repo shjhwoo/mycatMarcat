@@ -52,7 +52,7 @@ nginx 부하분산해보기
 
 <인프라?>
 뒷받침해주는 부분
-스케줄러서버: 인기상품관련
+스케줄러서버: 인기상품관련: 금주의 인기 상품 상위 5개 추천하기: 매주 금요일 오후 5시에. 한국 시각 기준으로!
 연동서버: 결제안내/ 입금확인/ 배송관련
 채팅서버
 https://manuel.kiessling.net/2012/09/28/applying-the-clean-architecture-to-go-applications/
@@ -86,3 +86,18 @@ pre-commit install 원하는 깃 레포에 명령어 실행 후 설치
 https://pre-commit.com/hooks.html
 https://github.com/Bahjat/pre-commit-golang
 https://goangle.medium.com/golang-improving-your-go-project-with-pre-commit-hooks-a265fad0e02f
+
+### 20230503 DB 테이블 구조 설계하기
+
+필요한 테이블 목록
+
+- 사용자 테이블(사용자PK, 사용자 아이디, 비밀번호, 닉네임)
+- 채팅방 레퍼런스 테이블(챗타입 PK, 챗타입)
+- 사용자들이 생성한 채팅방 테이블(채팅방PK, 챗타입PK, 채팅방이름)
+- 사용자 채팅 대화내역 저장 테이블:
+  최근 15일까지의 대화내역만 저장하고 15일 넘은 대화내역은 스케줄러로 DISCD처리  
+   (챗PK, 채팅방PK, 전송자PK, 메세지내용, 읽음여부, 생성시각, DISCD)
+- 상품정보 테이블(상품PK, 상품명, 상품가격, 품절여부, 등록일자(신상 할인 이벤트), 삭제여부)
+- 주문정보 테이블(주문PK, 상품PK, 사용자PK, )
+- 할인쿠폰 레퍼런스 테이블(쿠폰PK, 쿠폰이름, 할인율)
+- 상품후기 테이블(후기PK, 상품PK, 사용자PK, 후기내용, 별점, 삭제여부)
