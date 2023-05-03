@@ -16,10 +16,9 @@ import (
 type Chat interface {
 	getExchangeName() string
 	getExchangeType() string
-	getRoutingKey() string
+	getRoutingKeyForBind() string
+	makeRouteKey(string) string
 }
-
-var chat Chat
 
 var HelperExchangeName = "helperEx"
 var VolunteerExchangeName = "volunteerEx"
@@ -36,8 +35,12 @@ func (hc *HelperChat) getExchangeType() string {
 	return "topic"
 }
 
-func (hc *HelperChat) getRoutingKey() string {
+func (hc *HelperChat) getRoutingKeyForBind() string {
 	return fmt.Sprintf("%s.*", hc.pairType)
+}
+
+func (hc *HelperChat) makeRouteKey(to string) string {
+	return fmt.Sprintf("%s.%s", hc.pairType, to)
 }
 
 type VolunteerChat struct {
@@ -52,12 +55,18 @@ func (vc *VolunteerChat) getExchangeType() string {
 	return "topic"
 }
 
-func (vc *VolunteerChat) getRoutingKey() string {
+func (vc *VolunteerChat) getRoutingKeyForBind() string {
 	return fmt.Sprintf("vol.%s.*", vc.privacy)
 }
 
+func (vc *VolunteerChat) makeRouteKey(to string) string {
+	return fmt.Sprintf("vol.%s.%s", vc.privacy, to)
+}
+
 // 팩토리 함수
-func setChatInfo(chatType string) {
+func setChatInfo(chatType string) Chat {
+	var chat Chat
+
 	switch chatType {
 	case "chatbot":
 		chat = &HelperChat{pairType: "bot"}
@@ -68,20 +77,8 @@ func setChatInfo(chatType string) {
 	case "volunteerPublic":
 		chat = &VolunteerChat{privacy: "public"}
 	}
-}
 
-func CreateUserMsgBox(userid string) error {
-	err := checkEmptyUserId(userid)
-	if err != nil {
-		return err
-	}
-
-	_, err = MQIn.DeclareQueue(userid)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return chat
 }
 
 // 사용자 채팅방에 입장합니다
@@ -90,13 +87,18 @@ func EnterNewChatRoom(userid, chatType string) error {
 	if err != nil {
 		return err
 	}
-	setChatInfo(chatType)
 
-	queueName := userid
-	routingKey := chat.getRoutingKey()
+	q, err := MQIn.DeclareQueue(userid)
+	if err != nil {
+		return err
+	}
+
+	chat := setChatInfo(chatType)
+
+	routingKey := chat.getRoutingKeyForBind()
 	exchangeName := chat.getExchangeName()
 
-	err = MQIn.BindQueue(queueName, routingKey, exchangeName)
+	err = MQIn.BindQueue(q.Name, routingKey, exchangeName)
 	if err != nil {
 		return err
 	}
@@ -110,10 +112,10 @@ func LeaveChatRoom(userid, chatType string) error {
 		return err
 	}
 
-	setChatInfo(chatType)
+	chat := setChatInfo(chatType)
 
 	queueName := userid
-	routingKey := chat.getRoutingKey()
+	routingKey := chat.getRoutingKeyForBind()
 	exchangeName := chat.getExchangeName()
 
 	err = MQIn.UnbindQueue(queueName, routingKey, exchangeName)
@@ -127,5 +129,19 @@ func checkEmptyUserId(userid string) error {
 	if userid == "" {
 		return errors.New("userid cannot be empty")
 	}
+	return nil
+}
+
+func SendMessage(chatType, to, message string) error {
+	chat := setChatInfo(chatType)
+
+	exchange := chat.getExchangeName()
+	routingKey := chat.makeRouteKey(to)
+
+	err := MQIn.SendMsgToExchange(exchange, routingKey, message)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

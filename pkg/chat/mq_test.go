@@ -103,42 +103,42 @@ func TestMQInfra(t *testing.T) {
 	}
 
 	//사용지가 채팅방 입장 시 함수 구성요소만 테스트. 통합테스트아님
-	setChatInfo("chatbot")
+	chat := setChatInfo("chatbot")
 
 	assert.Equal(t, chat.getExchangeName(), "helperEx")
 	assert.Equal(t, chat.getExchangeType(), "topic")
-	assert.Equal(t, chat.getRoutingKey(), "bot.*")
+	assert.Equal(t, chat.getRoutingKeyForBind(), "bot.*")
 
-	setChatInfo("consult")
+	chat = setChatInfo("consult")
 
 	assert.Equal(t, chat.getExchangeName(), "helperEx")
 	assert.Equal(t, chat.getExchangeType(), "topic")
-	assert.Equal(t, chat.getRoutingKey(), "consult.*")
+	assert.Equal(t, chat.getRoutingKeyForBind(), "consult.*")
 
-	setChatInfo("volunteerPrivate")
-
-	assert.Equal(t, chat.getExchangeName(), "volunteerEx")
-	assert.Equal(t, chat.getExchangeType(), "topic")
-	assert.Equal(t, chat.getRoutingKey(), "vol.private.*")
-
-	setChatInfo("volunteerPublic")
+	chat = setChatInfo("volunteerPrivate")
 
 	assert.Equal(t, chat.getExchangeName(), "volunteerEx")
 	assert.Equal(t, chat.getExchangeType(), "topic")
-	assert.Equal(t, chat.getRoutingKey(), "vol.public.*")
+	assert.Equal(t, chat.getRoutingKeyForBind(), "vol.private.*")
 
-	//====사용자 로그인 후 채팅방 들어가기, 나가기 테스트
+	chat = setChatInfo("volunteerPublic")
+
+	assert.Equal(t, chat.getExchangeName(), "volunteerEx")
+	assert.Equal(t, chat.getExchangeType(), "topic")
+	assert.Equal(t, chat.getRoutingKeyForBind(), "vol.public.*")
+
+	//====채팅방 들어가기, 나가기 테스트
 	err = MQIn.DeclareExchange("helperEx", "topic")
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = CreateUserMsgBox("user1")
+	err = EnterNewChatRoom("user1", "chatbot")
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = EnterNewChatRoom("user1", "chatbot")
+	err = SendMessage("chatbot", "user1", "expected delivery date will be 5/12")
 	if err != nil {
 		t.Error(err)
 	}
