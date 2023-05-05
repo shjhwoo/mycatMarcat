@@ -8,8 +8,11 @@ Table users {
 
 Table volunteerPosts {
   id integer [primary key]
+  category tinyint
   content varchar
+  createdAt datetime
   userPK integer
+  DISCD tinyint
 }
 
 Table volunteerPostComments{
@@ -20,34 +23,31 @@ Table volunteerPostComments{
   commentPK integer
 }
 
-Table ChatType {
-  id integer [primary key]
-  type varchar
-}
-
-Table ChatRooms {
+Table chatRooms {
   id integer [primary key]
   chatRoomName varchar
-  chatTypePK integer
+  chatType integer
   ownerPK integer
+  DISCD tinyint
 }
 
-Table Chats {
+Table chats {
   id integer [primary key]
   message varchar
   isRead tinyint
   chatRoomPK integer
   senderPK integer
-  createdAt varchar
+  createdAt datetime
   DISCD tinyint
 }
 
-Table Products {
+Table products {
   id integer [primary key]
+  category integer
   productName varchar
   unitPrice integer
   isSoldOut tinyint
-  createdAt varchar
+  createdAt datetime
   DISCD tinyint
   maxDiscountRate integer
   couponApplyable tinyint
@@ -66,11 +66,12 @@ Table productReviewComment {
   id integer [primary key]
   content varchar
   userPK integer
-  rieviewPK integer
+  reviewPK integer
 }
 
 Table product_order {
   id integer [primary key]
+  orderCount integer
   productPK integer
   orderPK integer
   DISCD tinyint //부분취소여부
@@ -82,30 +83,33 @@ Table order {
   discountCouponPK integer
   usedCredits integer
   orderStatus tinyint
-  paymentMethodPK integer
+  createdAt datetime
 }
 
-Table paymentMethod {
+Table payment{
   id integer [primary key]
-  paymentMethod varchar
+  orderPK integer
+  paymentMethod integer
+  payAmount integer
 }
 
 Table discountCoupon {
   id integer [primary key]
   discountCouponName varchar
   discountRate integer
+  applyableProductCategory int
+  createdAt datetime
+  expiresAt datetime
 }
 
 
 Ref: "users"."id" < "volunteerPosts"."userPK"
 
-Ref: "users"."id" < "ChatRooms"."ownerPK"
+Ref: "users"."id" < "chatRooms"."ownerPK"
 
-Ref: "users"."id" < "Chats"."senderPK"
+Ref: "users"."id" < "chats"."senderPK"
 
-Ref: "ChatRooms"."id" < "Chats"."chatRoomPK"
-
-Ref: "ChatType"."id" < "ChatRooms"."chatTypePK"
+Ref: "chatRooms"."id" < "chats"."chatRoomPK"
 
 Ref: "users"."id" < "volunteerPostComments"."userPK"
 
@@ -113,20 +117,20 @@ Ref: "volunteerPosts"."id" < "volunteerPostComments"."volunteerPostPK"
 
 Ref: "volunteerPostComments"."id" < "volunteerPostComments"."commentPK"
 
-Ref: "Products"."id" < "product_order"."productPK"
+Ref: "products"."id" < "product_order"."productPK"
 
 Ref: "order"."id" < "product_order"."orderPK"
 
 Ref: "users"."id" < "order"."userPK"
 
-Ref: "Products"."id" < "productReview"."productPK"
+Ref: "products"."id" < "productReview"."productPK"
 
 Ref: "users"."id" < "productReview"."userPK"
 
-Ref: "productReview"."id" < "productReviewComment"."rieviewPK"
+Ref: "productReview"."id" < "productReviewComment"."reviewPK"
 
 Ref: "users"."id" < "productReviewComment"."userPK"
 
-Ref: "paymentMethod"."id" < "order"."paymentMethodPK"
-
 Ref: "discountCoupon"."id" < "order"."discountCouponPK"
+
+Ref: "order"."id" < "payment"."orderPK"

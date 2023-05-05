@@ -1,0 +1,21 @@
+version: "3.7"
+
+services:
+  mycatmarcat:
+    build:
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - 8080:8080
+
+  rabbitmq:
+    image: rabbitmq:3.9.16-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+      - 15674:15674
+    environment:
+      - RABBITMQ_DEFAULT_USER="admin"
+      - RABBITMQ_DEFAULT_PASS="admin"
+    volumes:
+      - "./rabbit_enabled_plugins:/etc/rabbitmq/enabled_plugins"

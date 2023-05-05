@@ -20,5 +20,3 @@ FROM scratch
 COPY --from=builder /go/bin/mycatmarcat /go/bin/mycatmarcat
 
 ENTRYPOINT [ "/go/bin/mycatmarcat" ]
-
-#
