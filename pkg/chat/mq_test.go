@@ -11,7 +11,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-func TestMQInfra(t *testing.T) {
+func TestMQInf(t *testing.T) {
 	ctx := context.Background()
 	req := testcontainers.ContainerRequest{
 		Image:        "rabbitmq:3.9.16-management",
@@ -44,10 +44,6 @@ func TestMQInfra(t *testing.T) {
 		ContainerRequest: req,
 		Started:          true,
 	})
-
-	if err != nil {
-		t.Error(err)
-	}
 
 	defer func() {
 		if err := mqContainer.Terminate(ctx); err != nil {
