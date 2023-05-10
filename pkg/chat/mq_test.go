@@ -44,6 +44,9 @@ func TestMQInf(t *testing.T) {
 		ContainerRequest: req,
 		Started:          true,
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	defer func() {
 		if err := mqContainer.Terminate(ctx); err != nil {
