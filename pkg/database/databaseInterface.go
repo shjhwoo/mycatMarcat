@@ -45,3 +45,37 @@ func buildDataSourceName() string {
 
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", username, password, host, port, databaseName) //"root:1234@tcp(127.0.0.1:3307)/"
 }
+
+// 트랜잭션
+type TxFn func(*sqlx.Tx) error
+
+func (d *DBInf) withTransaction(fn TxFn) error {
+	tx, err := d.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	err = fn(tx)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// 쿼리 실행부
+func (d *DBInf) runQuery(query string, params []any) error {
+	return d.withTransaction(func(tx *sqlx.Tx) error {
+		_, err := tx.Exec(query, params...)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+}
